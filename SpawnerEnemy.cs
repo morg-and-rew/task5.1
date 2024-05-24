@@ -5,13 +5,20 @@ using UnityEngine;
 public class SpawnerEnemy : EnemyPool
 {
     [SerializeField] private List<Transform> _spawnPoints;
-    [SerializeField] private GameObject _enemy;
+    [SerializeField] private EnemyMover _enemy;
     [SerializeField] private float _timeBetweenSpawn = 2f;
+    [SerializeField] private float deactivateTime = 10f;
 
     private void Start()
     {
         Create(_enemy);
         StartCoroutine(SpawnEnemiesRepeatedly());
+    }
+
+    private void Update()
+    {
+        if (TryGetObject(out EnemyMover enemy))
+            StartCoroutine(UpdateDeactivateTimer(enemy));
     }
 
     private IEnumerator SpawnEnemiesRepeatedly()
@@ -20,7 +27,7 @@ public class SpawnerEnemy : EnemyPool
         {
             yield return new WaitForSeconds(_timeBetweenSpawn);
 
-            if (TryGetObject(out GameObject enemy))
+            if (TryGetObject(out EnemyMover enemy))
             {
                 int spawnPointIndex = Random.Range(0, _spawnPoints.Count);
                 SetEnemy(enemy, _spawnPoints[spawnPointIndex].position);
@@ -28,9 +35,28 @@ public class SpawnerEnemy : EnemyPool
         }
     }
 
-    private void SetEnemy(GameObject enemy, Vector3 spawnPoint)
+    private IEnumerator UpdateDeactivateTimer(EnemyMover enemy)
     {
-        enemy.transform.position = spawnPoint;
-        enemy.SetActive(true);
+        yield return new WaitForSeconds(deactivateTime);
+        enemy.gameObject.SetActive(false);
+    }
+
+    private void SetEnemy(EnemyMover enemy, Vector3 spawnPoint)
+    {
+        enemy.gameObject.transform.position = spawnPoint;
+        enemy.gameObject.SetActive(true);
+
+        if (enemy.gameObject.TryGetComponent(out EnemyMover enemyMover))
+        {
+            Vector3 randomDirection = SetRandomDirection();
+            enemyMover.SetRandomDirection(randomDirection);
+        }
+    }
+
+    private Vector3 SetRandomDirection()
+    {
+        float randomAngle = Random.Range(0f, 360f);
+        Vector3 randomDirection = Quaternion.Euler(0, randomAngle, 0) * Vector3.forward;
+        return randomDirection;
     }
 }

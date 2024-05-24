@@ -4,25 +4,25 @@ using UnityEngine;
 
 public class EnemyPool : MonoBehaviour
 {
-    [SerializeField] private GameObject _container;
+    [SerializeField] private Transform _container;
     [SerializeField] private int _capacity = 10;
 
-    private List<GameObject> _pool = new List<GameObject>();
+    private List<EnemyMover> _pool = new List<EnemyMover>();
 
-    public void Create(GameObject prefab)
+    public void Create(EnemyMover prefab)
     {
         for (int i = 0; i < _capacity; i++)
         {
-            GameObject enemy = Instantiate(prefab, _container.transform);
-            enemy.SetActive(false);
+            EnemyMover enemy = Instantiate(prefab, _container.transform);
+            enemy.gameObject.SetActive(false);
 
             _pool.Add(enemy);
         }
     }
 
-    protected bool TryGetObject(out GameObject result)
+    protected bool TryGetObject(out EnemyMover result)
     {
-        result = _pool.FirstOrDefault(p => p.activeSelf == false);
+        result = _pool.FirstOrDefault(p => p.gameObject.activeSelf == false);
         return result != null;
     }
 }
